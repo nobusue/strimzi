@@ -105,9 +105,7 @@ elif [ "$TEST_CLUSTER" = "oc" ]; then
     tar xzf openshift.tar.gz -C /tmp/openshift --strip-components 1
     sudo cp /tmp/openshift/oc /usr/bin
 
-    docker run -d -p 5000:5000 registry --insecure-registry 172.30.0.0/16
-
-    sudo oc cluster up
+    sudo oc cluster up --skip-registry-check=true
 
     wait_for_oc
 
