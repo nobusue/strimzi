@@ -33,6 +33,24 @@ function wait_for_minikube {
     return 1
 }
 
+function wait_for_oc {
+    i="0"
+
+    while [ $i -lt 60 ]
+    do
+        oc cluster status
+        if [ $? -ne 0 ]
+        then
+            sleep 1
+        else
+            return 0
+        fi
+        i=$[$i+1]
+    done
+
+    return 1
+}
+
 if [ "$TEST_CLUSTER" = "minikube" ]; then
     install_kubectl
     if [ "${TEST_MINIKUBE_VERSION:-latest}" = "latest" ]; then
@@ -86,6 +104,16 @@ elif [ "$TEST_CLUSTER" = "oc" ]; then
     wget https://github.com/openshift/origin/releases/download/v3.7.0/openshift-origin-client-tools-v3.7.0-7ed6862-linux-64bit.tar.gz -O openshift.tar.gz
     tar xzf openshift.tar.gz -C /tmp/openshift --strip-components 1
     sudo cp /tmp/openshift/oc /usr/bin
+
+    sudo oc cluster up
+
+    wait_for_oc
+
+    if [ $? -ne 0 ]
+    then
+        echo "OC failed to start"
+        exit 1
+    fi
 else
     echo "Unsupported TEST_CLUSTER '$TEST_CLUSTER'"
     exit 1
